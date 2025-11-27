@@ -1,0 +1,960 @@
+<!DOCTYPE html>
+<html lang="nl">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Reactie-Bouwer | LPD 4C</title>
+    <style>
+        * {
+            margin: 0;
+            padding: 0;
+            box-sizing: border-box;
+        }
+
+        body {
+            font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif;
+            background: #f0f2f5;
+            min-height: 100vh;
+            padding: 20px;
+        }
+
+        .container {
+            max-width: 1100px;
+            margin: 0 auto;
+        }
+
+        header {
+            text-align: center;
+            margin-bottom: 30px;
+            background: white;
+            padding: 40px;
+            border-radius: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        h1 {
+            color: #667eea;
+            font-size: 2.8em;
+            margin-bottom: 10px;
+            font-weight: 700;
+        }
+
+        .subtitle {
+            color: #666;
+            font-size: 1.2em;
+        }
+
+        .notation-tip {
+            background: #dbeafe;
+            border: 3px solid #3b82f6;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            text-align: center;
+        }
+
+        .notation-tip strong {
+            color: #1e40af;
+            font-size: 1.1em;
+        }
+
+        .reaction-card {
+            background: white;
+            border-radius: 20px;
+            padding: 40px;
+            margin-bottom: 30px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .reaction-type {
+            display: inline-block;
+            background: #667eea;
+            color: white;
+            padding: 10px 25px;
+            border-radius: 20px;
+            font-weight: 600;
+            margin-bottom: 20px;
+        }
+
+        .reaction-description {
+            font-size: 1.3em;
+            color: #333;
+            margin-bottom: 30px;
+            padding: 20px;
+            background: #f8f9fa;
+            border-radius: 12px;
+            border-left: 4px solid #667eea;
+        }
+
+        .phase-indicator {
+            background: #4f46e5;
+            color: white;
+            padding: 15px 25px;
+            border-radius: 12px;
+            margin-bottom: 25px;
+            font-weight: 600;
+            font-size: 1.1em;
+            text-align: center;
+        }
+
+        .equation-builder {
+            background: #f8f9fa;
+            border-radius: 16px;
+            padding: 35px;
+            margin-bottom: 30px;
+        }
+
+        .equation-display {
+            font-size: 2.5em;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            flex-wrap: wrap;
+            gap: 15px;
+            margin: 30px 0;
+            min-height: 100px;
+        }
+
+        .equation-display sub {
+            font-size: 0.6em;
+        }
+
+        .reactant {
+            color: #3b82f6;
+        }
+
+        .arrow {
+            font-size: 1.2em;
+            color: #4f46e5;
+        }
+
+        .plus {
+            color: #666;
+            font-size: 0.8em;
+        }
+
+        .formula-input-wrapper {
+            display: inline-flex;
+            flex-direction: column;
+            align-items: center;
+            gap: 10px;
+        }
+
+        .formula-display {
+            min-width: 150px;
+            min-height: 60px;
+            padding: 12px 20px;
+            font-size: 1em;
+            font-family: 'Courier New', monospace;
+            font-weight: bold;
+            border: 3px solid #e5e7eb;
+            border-radius: 10px;
+            text-align: center;
+            background: white;
+            cursor: text;
+            transition: all 0.3s ease;
+        }
+
+        .formula-display:focus {
+            outline: none;
+            border-color: #667eea;
+            box-shadow: 0 0 0 3px rgba(102, 126, 234, 0.2);
+        }
+
+        .formula-display.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .formula-display.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+            animation: shake 0.3s;
+        }
+
+        .formula-display sub {
+            font-size: 0.7em;
+        }
+
+        .formula-display:empty:before {
+            content: '?';
+            color: #bbb;
+        }
+
+        .input-hint {
+            font-size: 0.75em;
+            color: #666;
+            font-weight: normal;
+            text-align: center;
+        }
+
+        @keyframes shake {
+
+            0%,
+            100% {
+                transform: translateX(0);
+            }
+
+            25% {
+                transform: translateX(-5px);
+            }
+
+            75% {
+                transform: translateX(5px);
+            }
+        }
+
+        .coef-input {
+            width: 60px;
+            padding: 8px;
+            font-size: 0.9em;
+            border: 3px solid #e5e7eb;
+            border-radius: 8px;
+            text-align: center;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            margin: 0 5px;
+        }
+
+        .coef-input:focus {
+            outline: none;
+            border-color: #667eea;
+        }
+
+        .coef-input.correct {
+            background: #d1fae5;
+            border-color: #10b981;
+        }
+
+        .coef-input.incorrect {
+            background: #fee2e2;
+            border-color: #ef4444;
+            animation: shake 0.3s;
+        }
+
+        .hint-box {
+            background: #fef3c7;
+            border-left: 4px solid #f59e0b;
+            border-radius: 12px;
+            padding: 20px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .hint-box.show {
+            display: block;
+        }
+
+        .hint-title {
+            font-weight: 700;
+            color: #92400e;
+            margin-bottom: 10px;
+            font-size: 1.1em;
+        }
+
+        .hint-text {
+            color: #78350f;
+            line-height: 1.6;
+        }
+
+        .atom-counter {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-bottom: 25px;
+            display: none;
+        }
+
+        .atom-counter.show {
+            display: block;
+        }
+
+        .counter-title {
+            font-size: 1.3em;
+            font-weight: 700;
+            color: #333;
+            margin-bottom: 20px;
+        }
+
+        .count-table {
+            display: grid;
+            grid-template-columns: auto 1fr 1fr;
+            gap: 15px;
+            align-items: center;
+        }
+
+        .count-header {
+            font-weight: 700;
+            color: #666;
+            padding: 10px;
+            text-align: center;
+        }
+
+        .element-symbol {
+            font-size: 1.5em;
+            font-weight: bold;
+            font-family: 'Courier New', monospace;
+            color: #667eea;
+            padding: 10px;
+        }
+
+        .count-value {
+            background: #f8f9fa;
+            border: 2px solid #e5e7eb;
+            border-radius: 8px;
+            padding: 12px;
+            text-align: center;
+            font-weight: bold;
+            font-size: 1.2em;
+        }
+
+        .count-value.balanced {
+            background: #d1fae5;
+            border-color: #10b981;
+            color: #065f46;
+        }
+
+        .count-value.unbalanced {
+            background: #fee2e2;
+            border-color: #ef4444;
+            color: #991b1b;
+        }
+
+        .controls {
+            display: flex;
+            gap: 15px;
+            justify-content: center;
+            flex-wrap: wrap;
+            margin-top: 30px;
+        }
+
+        .btn {
+            border: none;
+            border-radius: 12px;
+            padding: 15px 35px;
+            font-size: 1.2em;
+            font-weight: 600;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .btn:hover:not(:disabled) {
+            transform: translateY(-2px);
+            box-shadow: 0 8px 20px rgba(0, 0, 0, 0.2);
+        }
+
+        .btn-check-products {
+            background: #3b82f6;
+            color: white;
+        }
+
+        .btn-check-balance {
+            background: #10b981;
+            color: white;
+            display: none;
+        }
+
+        .btn-check-balance.show {
+            display: inline-block;
+        }
+
+        .btn-hint {
+            background: #f59e0b;
+            color: white;
+        }
+
+        .btn-next {
+            background: #4f46e5;
+            color: white;
+            display: none;
+        }
+
+        .btn-next.show {
+            display: inline-block;
+        }
+
+        .btn:disabled {
+            opacity: 0.5;
+            cursor: not-allowed;
+        }
+
+        .feedback {
+            background: white;
+            border-radius: 12px;
+            padding: 25px;
+            margin-top: 20px;
+            text-align: center;
+            font-weight: 600;
+            font-size: 1.2em;
+            display: none;
+        }
+
+        .feedback.show {
+            display: block;
+        }
+
+        .feedback.success {
+            background: #d1fae5;
+            color: #065f46;
+            border: 3px solid #10b981;
+        }
+
+        .feedback.error {
+            background: #fee2e2;
+            color: #991b1b;
+            border: 3px solid #ef4444;
+        }
+
+        .stats {
+            background: white;
+            border-radius: 20px;
+            padding: 25px;
+            display: grid;
+            grid-template-columns: repeat(3, 1fr);
+            gap: 20px;
+            box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        }
+
+        .stat {
+            text-align: center;
+        }
+
+        .stat-value {
+            font-size: 2.5em;
+            font-weight: bold;
+            color: #4f46e5;
+        }
+
+        .stat-label {
+            font-size: 1em;
+            color: #666;
+            margin-top: 5px;
+        }
+
+        .difficulty-badge {
+            display: inline-block;
+            padding: 5px 15px;
+            border-radius: 20px;
+            font-weight: bold;
+            font-size: 0.9em;
+            margin-bottom: 10px;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+        }
+
+        .diff-beginner {
+            background: #d1fae5;
+            color: #065f46;
+        }
+
+        .diff-medium {
+            background: #dbeafe;
+            color: #1e40af;
+        }
+
+        .diff-hard {
+            background: #ffedd5;
+            color: #9a3412;
+        }
+
+        .diff-godly {
+            background: #fae8ff;
+            color: #6b21a8;
+            border: 1px solid #d8b4fe;
+        }
+
+        @media (max-width: 1024px) {
+            .container {
+                padding: 10px;
+            }
+        }
+    </style>
+</head>
+
+<body>
+    <div class="container">
+        <header>
+            <h1>Reactie-Bouwer</h1>
+            <p class="subtitle">Voorspel producten en balanceer de reactie</p>
+        </header>
+
+        <div class="notation-tip">
+            <strong>Automatische Subscripts:</strong> Typ gewoon letters en cijfers - cijfers worden automatisch
+            subscripts!<br>
+            Bijvoorbeeld: typ "CO2" → zie "CO₂"
+        </div>
+
+        <div class="reaction-card">
+            <div id="difficulty-badge" class="difficulty-badge"></div>
+            <div class="reaction-type" id="reaction-type"></div>
+            <div class="reaction-description" id="reaction-description"></div>
+            <div class="phase-indicator" id="phase-indicator">FASE 1: Voorspel de producten</div>
+
+            <div class="equation-builder">
+                <div class="equation-display" id="equation-display"></div>
+            </div>
+
+            <div class="hint-box" id="hint-box">
+                <div class="hint-title">Hint</div>
+                <div class="hint-text" id="hint-text"></div>
+            </div>
+
+            <div class="atom-counter" id="atom-counter">
+                <div class="counter-title">Atoomtelling</div>
+                <div class="count-table" id="atom-counts"></div>
+            </div>
+
+            <div class="controls">
+                <button class="btn btn-check-products" id="check-products-btn" onclick="checkProducts()">
+                    Controleer Producten
+                </button>
+                <button class="btn btn-check-balance" id="check-balance-btn" onclick="checkBalance()">
+                    Controleer Balans
+                </button>
+                <button class="btn btn-hint" onclick="showHint()">Hint</button>
+                <button class="btn btn-next" id="next-btn" onclick="nextReaction()">Volgende</button>
+            </div>
+
+            <div class="feedback" id="feedback"></div>
+        </div>
+
+        <div class="stats">
+            <div class="stat">
+                <div class="stat-value" id="completed-count">0</div>
+                <div class="stat-label">Voltooid</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="phase-count">0</div>
+                <div class="stat-label">Huidige Fase</div>
+            </div>
+            <div class="stat">
+                <div class="stat-value" id="accuracy">100%</div>
+                <div class="stat-label">Nauwkeurigheid</div>
+            </div>
+        </div>
+    </div>
+
+    <script>
+        const reactions = [
+            {
+                type: "Verbranding",
+                description: "Methaan (CH₄) verbrandt met zuurstof",
+                reactants: ["CH<sub>4</sub>", "O<sub>2</sub>"],
+                products: ["CO<sub>2</sub>", "H<sub>2</sub>O"],
+                productHints: ["koolstofdioxide", "water"],
+                coefficients: [1, 2, 1, 2],
+                elements: ["C", "H", "O"],
+                hint: "Bij verbranding van koolwaterstof ontstaan altijd CO₂ en H₂O",
+                difficulty: "Niveau 1: Beginner",
+                level: "beginner"
+            },
+            {
+                type: "Synthese",
+                description: "Magnesium (Mg) reageert met zuurstof (O₂)",
+                reactants: ["Mg", "O<sub>2</sub>"],
+                products: ["MgO"],
+                productHints: ["magnesiumoxide"],
+                coefficients: [2, 1, 2],
+                elements: ["Mg", "O"],
+                hint: "Metaal + zuurstof → metaaloxide. Mg heeft oxidatiegetal +2.",
+                difficulty: "Niveau 1: Beginner",
+                level: "beginner"
+            },
+            {
+                type: "Synthese",
+                description: "Waterstof (H₂) reageert met zuurstof (O₂)",
+                reactants: ["H<sub>2</sub>", "O<sub>2</sub>"],
+                products: ["H<sub>2</sub>O"],
+                productHints: ["water"],
+                coefficients: [2, 1, 2],
+                elements: ["H", "O"],
+                hint: "De klassieke knalgas reactie! H₂ + O₂ → H₂O",
+                difficulty: "Niveau 1: Beginner",
+                level: "beginner"
+            },
+            {
+                type: "Neutralisatie",
+                description: "Zoutzuur (HCl) reageert met natronloog (NaOH)",
+                reactants: ["HCl", "NaOH"],
+                products: ["NaCl", "H<sub>2</sub>O"],
+                productHints: ["natriumchloride", "water"],
+                coefficients: [1, 1, 1, 1],
+                elements: ["H", "Cl", "Na", "O"],
+                hint: "Zuur + base → zout + water. H⁺ + OH⁻ → H₂O",
+                difficulty: "Niveau 2: Gemiddeld",
+                level: "medium"
+            },
+            {
+                type: "Verbranding",
+                description: "Propaan (C₃H₈) verbrandt met zuurstof",
+                reactants: ["C<sub>3</sub>H<sub>8</sub>", "O<sub>2</sub>"],
+                products: ["CO<sub>2</sub>", "H<sub>2</sub>O"],
+                productHints: ["koolstofdioxide", "water"],
+                coefficients: [1, 5, 3, 4],
+                elements: ["C", "H", "O"],
+                hint: "Bij verbranding ontstaan CO₂ en H₂O. C₃H₈ heeft 3 C en 8 H!",
+                difficulty: "Niveau 2: Gemiddeld",
+                level: "medium"
+            },
+            {
+                type: "Synthese",
+                description: "Aluminium (Al) reageert met chloor (Cl₂)",
+                reactants: ["Al", "Cl<sub>2</sub>"],
+                products: ["AlCl<sub>3</sub>"],
+                productHints: ["aluminiumchloride"],
+                coefficients: [2, 3, 2],
+                elements: ["Al", "Cl"],
+                hint: "Al wordt Al³⁺ en Cl wordt Cl⁻. Dus AlCl₃.",
+                difficulty: "Niveau 3: Moeilijk",
+                level: "hard"
+            },
+            {
+                type: "Synthese",
+                description: "IJzer (Fe) reageert met zuurstof (O₂)",
+                reactants: ["Fe", "O<sub>2</sub>"],
+                products: ["Fe<sub>2</sub>O<sub>3</sub>"],
+                productHints: ["ijzer(III)oxide"],
+                coefficients: [4, 3, 2],
+                elements: ["Fe", "O"],
+                hint: "Denk aan roest! Fe³⁺ en O²⁻ vormen Fe₂O₃.",
+                difficulty: "Niveau 3: Moeilijk",
+                level: "hard"
+            },
+            {
+                type: "Verbranding",
+                description: "Butaan (C₄H₁₀) verbrandt met zuurstof",
+                reactants: ["C<sub>4</sub>H<sub>10</sub>", "O<sub>2</sub>"],
+                products: ["CO<sub>2</sub>", "H<sub>2</sub>O"],
+                productHints: ["koolstofdioxide", "water"],
+                coefficients: [2, 13, 8, 10],
+                elements: ["C", "H", "O"],
+                hint: "4 C → 4 CO₂, 10 H → 5 H₂O. Oeps, oneven aantal O's (13). Alles verdubbelen!",
+                difficulty: "Niveau 4: Expert",
+                level: "godly"
+            }
+        ];
+
+        let currentReaction = 0;
+        let currentPhase = 1;
+        let completed = 0;
+        let totalAttempts = 0;
+        let successfulAttempts = 0;
+
+        function autoSubscript(text) {
+            return text.replace(/(\d+)/g, '<sub>$1</sub>');
+        }
+
+        function normalizeFormula(formula) {
+            return formula.replace(/<\/?sub>/g, '').replace(/\s/g, '').toUpperCase();
+        }
+
+        function makeFormulaEditable(element) {
+            element.contentEditable = true;
+
+            element.addEventListener('input', function () {
+                const selection = window.getSelection();
+                if (selection.rangeCount > 0) {
+                    const range = selection.getRangeAt(0);
+                    const textNode = range.startContainer;
+
+                    // Only process if we are in a text node
+                    if (textNode.nodeType === Node.TEXT_NODE) {
+                        const text = this.textContent;
+                        const formatted = autoSubscript(text);
+
+                        if (this.innerHTML !== formatted) {
+                            this.innerHTML = formatted;
+
+                            // Robust cursor restoration: set cursor to end of the newly created node
+                            const newRange = document.createRange();
+                            newRange.selectNodeContents(this);
+                            newRange.collapse(false); // Move to end
+                            selection.removeAllRanges();
+                            selection.addRange(newRange);
+                        }
+                    }
+                }
+            });
+        }
+
+        function loadReaction() {
+            currentPhase = 1;
+            const reaction = reactions[currentReaction];
+
+            document.getElementById('reaction-type').textContent = `${reaction.type}sreactie`;
+            document.getElementById('reaction-description').textContent = reaction.description;
+            document.getElementById('phase-indicator').textContent = 'FASE 1: Voorspel de producten';
+
+            const badge = document.getElementById('difficulty-badge');
+            badge.textContent = reaction.difficulty;
+            badge.className = 'difficulty-badge diff-' + reaction.level;
+
+            renderEquation();
+
+            document.getElementById('hint-box').classList.remove('show');
+            document.getElementById('atom-counter').classList.remove('show');
+            document.getElementById('feedback').classList.remove('show');
+            document.getElementById('check-products-btn').style.display = 'inline-block';
+            document.getElementById('check-balance-btn').style.display = '';
+            document.getElementById('check-balance-btn').classList.remove('show');
+            document.getElementById('next-btn').classList.remove('show');
+
+            updatePhaseDisplay();
+        }
+
+        function renderEquation() {
+            const reaction = reactions[currentReaction];
+            let html = '';
+
+            if (currentPhase === 1) {
+                html += reaction.reactants.map(r => `<span class="reactant">${r}</span>`).join(' <span class="plus">+</span> ');
+                html += ' <span class="arrow">→</span> ';
+
+                reaction.products.forEach((p, i) => {
+                    html += `
+                        <div class="formula-input-wrapper">
+                            <div class="formula-display" id="product-${i}"></div>
+                            <span class="input-hint">${reaction.productHints[i]}</span>
+                        </div>
+                    `;
+                    if (i < reaction.products.length - 1) html += ' <span class="plus">+</span> ';
+                });
+            } else {
+                reaction.reactants.forEach((r, i) => {
+                    html += `<input type="number" class="coef-input" id="coef-r${i}" min="1" max="20" value="1" /> `;
+                    html += `<span class="reactant">${r}</span>`;
+                    if (i < reaction.reactants.length - 1) html += ' <span class="plus">+</span> ';
+                });
+
+                html += ' <span class="arrow">→</span> ';
+
+                reaction.products.forEach((p, i) => {
+                    html += `<input type="number" class="coef-input" id="coef-p${i}" min="1" max="20" value="1" /> `;
+                    html += `<span class="reactant">${p}</span>`;
+                    if (i < reaction.products.length - 1) html += ' <span class="plus">+</span> ';
+                });
+            }
+
+            document.getElementById('equation-display').innerHTML = html;
+
+            if (currentPhase === 1) {
+                reaction.products.forEach((p, i) => {
+                    const element = document.getElementById(`product-${i}`);
+                    makeFormulaEditable(element);
+                });
+                setTimeout(() => document.getElementById('product-0')?.focus(), 100);
+            } else if (currentPhase === 2) {
+                const inputs = document.querySelectorAll('.coef-input');
+                inputs.forEach(input => {
+                    input.addEventListener('input', updateAtomCounts);
+                    input.addEventListener('change', updateAtomCounts);
+                });
+                updateAtomCounts();
+            }
+        }
+
+        function checkProducts() {
+            const reaction = reactions[currentReaction];
+            let allCorrect = true;
+            totalAttempts++;
+
+            reaction.products.forEach((correctProduct, i) => {
+                const element = document.getElementById(`product-${i}`);
+                const userAnswer = normalizeFormula(element.innerHTML);
+                const correct = normalizeFormula(correctProduct);
+
+                if (userAnswer === correct) {
+                    element.classList.add('correct');
+                    element.classList.remove('incorrect');
+                    element.contentEditable = false;
+                } else {
+                    element.classList.add('incorrect');
+                    element.classList.remove('correct');
+                    allCorrect = false;
+                }
+            });
+
+            const feedback = document.getElementById('feedback');
+            feedback.classList.add('show');
+
+            if (allCorrect) {
+                successfulAttempts++;
+                feedback.className = 'feedback show success';
+                feedback.innerHTML = 'Correct! De formules zijn juist. Nu balanceren.';
+
+                setTimeout(() => {
+                    currentPhase = 2;
+                    document.getElementById('phase-indicator').textContent = 'FASE 2: Balanceer de reactievergelijking';
+                    document.getElementById('check-products-btn').style.display = 'none';
+                    document.getElementById('check-balance-btn').classList.add('show');
+
+                    // Show atom counter only for the first reaction (Beginner)
+                    if (currentReaction === 0) {
+                        document.getElementById('atom-counter').classList.add('show');
+                    }
+
+                    renderEquation();
+                    feedback.classList.remove('show');
+                    updatePhaseDisplay();
+                }, 1500);
+            } else {
+                feedback.className = 'feedback show error';
+                feedback.innerHTML = 'Niet alle formules zijn correct. Let op subscripts.';
+
+                setTimeout(() => {
+                    document.querySelectorAll('.formula-display.incorrect').forEach(el => {
+                        el.classList.remove('incorrect');
+                    });
+                }, 500);
+            }
+
+            updateStats();
+        }
+
+        function countAtoms(formula, coefficient = 1) {
+            const counts = {};
+            const text = formula.replace(/<\/?sub>/g, '');
+            const regex = /([A-Z][a-z]?)(\d*)/g;
+            let match;
+
+            while ((match = regex.exec(text)) !== null) {
+                const element = match[1];
+                const count = match[2] ? parseInt(match[2]) : 1;
+                counts[element] = (counts[element] || 0) + (count * coefficient);
+            }
+
+            return counts;
+        }
+
+        function updateAtomCounts() {
+            const reaction = reactions[currentReaction];
+            const leftCounts = {};
+            const rightCounts = {};
+
+            reaction.reactants.forEach((reactant, i) => {
+                const coef = parseInt(document.getElementById(`coef-r${i}`).value) || 1;
+                const counts = countAtoms(reactant, coef);
+                for (const [element, count] of Object.entries(counts)) {
+                    leftCounts[element] = (leftCounts[element] || 0) + count;
+                }
+            });
+
+            reaction.products.forEach((product, i) => {
+                const coef = parseInt(document.getElementById(`coef-p${i}`).value) || 1;
+                const counts = countAtoms(product, coef);
+                for (const [element, count] of Object.entries(counts)) {
+                    rightCounts[element] = (rightCounts[element] || 0) + count;
+                }
+            });
+
+            let html = '<div class="count-header">Element</div><div class="count-header">Links</div><div class="count-header">Rechts</div>';
+
+            reaction.elements.forEach(element => {
+                const left = leftCounts[element] || 0;
+                const right = rightCounts[element] || 0;
+                const balanced = left === right && left > 0;
+
+                html += `
+                    <div class="element-symbol">${element}</div>
+                    <div class="count-value ${balanced ? 'balanced' : 'unbalanced'}">${left}</div>
+                    <div class="count-value ${balanced ? 'balanced' : 'unbalanced'}">${right}</div>
+                    `;
+            });
+
+            document.getElementById('atom-counts').innerHTML = html;
+        }
+
+        function checkBalance() {
+            const reaction = reactions[currentReaction];
+            totalAttempts++;
+
+            const userCoefs = [];
+            reaction.reactants.forEach((r, i) => {
+                userCoefs.push(parseInt(document.getElementById(`coef-r${i}`).value) || 1);
+            });
+            reaction.products.forEach((p, i) => {
+                userCoefs.push(parseInt(document.getElementById(`coef-p${i}`).value) || 1);
+            });
+
+            const isCorrect = JSON.stringify(userCoefs) === JSON.stringify(reaction.coefficients);
+
+            const feedback = document.getElementById('feedback');
+            feedback.classList.add('show');
+
+            if (isCorrect) {
+                successfulAttempts++;
+                completed++;
+                feedback.className = 'feedback show success';
+                feedback.innerHTML = 'Correct! Formules en balans zijn in orde.';
+
+                document.querySelectorAll('.coef-input').forEach(input => {
+                    input.classList.add('correct');
+                    input.disabled = true;
+                });
+
+                document.getElementById('check-balance-btn').style.display = 'none';
+                document.getElementById('next-btn').classList.add('show');
+            } else {
+                feedback.className = 'feedback show error';
+                feedback.innerHTML = 'De balans klopt nog niet. Controleer de atoomtellingen.';
+
+                document.querySelectorAll('.coef-input').forEach(input => {
+                    input.classList.add('incorrect');
+                });
+
+                // Show atom counter on mistake to assist
+                document.getElementById('atom-counter').classList.add('show');
+
+                setTimeout(() => {
+                    document.querySelectorAll('.coef-input').forEach(input => {
+                        input.classList.remove('incorrect');
+                    });
+                }, 500);
+            }
+
+            updateStats();
+        }
+
+        function showHint() {
+            const reaction = reactions[currentReaction];
+            document.getElementById('hint-text').textContent = reaction.hint;
+            document.getElementById('hint-box').classList.add('show');
+        }
+
+        function nextReaction() {
+            currentReaction++;
+            if (currentReaction >= reactions.length) {
+                const feedback = document.getElementById('feedback');
+                feedback.className = 'feedback show success';
+                feedback.innerHTML = `
+                    Gefeliciteerd! Je beheerst het opstellen en balanceren van reactievergelijkingen.<br><br>
+                    <button class="btn btn-check-products" onclick="location.reload()">Opnieuw</button>
+                `;
+                document.getElementById('next-btn').style.display = 'none';
+            } else {
+                loadReaction();
+            }
+        }
+
+        function updatePhaseDisplay() {
+            document.getElementById('phase-count').textContent = currentPhase;
+        }
+
+        function updateStats() {
+            document.getElementById('completed-count').textContent = completed;
+            const accuracy = totalAttempts > 0 ? Math.round((successfulAttempts / totalAttempts) * 100) : 100;
+            document.getElementById('accuracy').textContent = accuracy + '%';
+        }
+
+        // Initialize
+        loadReaction();
+        updateStats();
+    </script>
+</body>
+
+</html>
